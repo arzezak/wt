@@ -20,12 +20,29 @@ Reload your shell (`exec zsh`) and you're set. `make uninstall` removes the bina
 
 ## Usage
 
+Switch to a worktree (exact or unique-prefix match, tab-completes):
+
+```sh
+wt [name]
+wt cd <name>
 ```
-wt              # list worktrees (pass a name or use tab completion)
-wt cd <name>    # cd into a worktree (exact or unique-prefix match)
-wt new <branch> [base]  # create a worktree, optionally from a base ref
-wt rm [name]    # remove a worktree (branch preserved)
-wt ls           # list worktrees
+
+Create a worktree, optionally from a base ref:
+
+```sh
+wt new <branch> [base]
+```
+
+Remove a worktree (branch preserved):
+
+```sh
+wt rm [name]
+```
+
+List worktrees:
+
+```sh
+wt ls
 ```
 
 ### Resolution
@@ -102,11 +119,14 @@ Shell out, don't reimplement. `Process.run` to `git`; no git library.
 
 ```
 src/
-  wt.cr              # entrypoint, subcommand dispatch
+  wt.cr              # entrypoint
   wt/
+    cli.cr           # subcommand dispatch, arg parsing
+    result.cr        # Result struct (cd/print/none)
     git.cr           # thin wrapper over git worktree, rev-parse helpers
     repo.cr          # main-repo resolution, worktree root, ignore handling
     resolver.cr      # name -> worktree (exact/unique-prefix), candidate lists
+    config.cr        # .wt.yml / .wt.local.yml / global config loading
     completion.cr    # __complete <kind> + init <shell> (shim + completions)
     commands/
       cd.cr
@@ -117,8 +137,8 @@ spec/
   ...                # one spec per command + repo/git helpers
 ```
 
-Commands return a small `Result` struct (e.g. `Result.new(cd: path)` or `Result.new(stdout: text)`). The entrypoint renders it to the shim protocol, keeping commands testable without touching real stdout.
+Commands return a small `Result` struct (e.g. `Result.cd(path)` or `Result.print(text)`). `CLI#run` renders it to the shim protocol, keeping commands testable without touching real stdout.
 
 ## Why Crystal
 
-Ruby-ish syntax, compiles to a single fast binary, real `OptionParser`, and actual specs. Good first-project size: small enough to finish, real enough to hit interesting bits (shelling out, output parsing, the cd-shim trick).
+Ruby-ish syntax, compiles to a single fast binary, and actual specs. Good first-project size: small enough to finish, real enough to hit interesting bits (shelling out, output parsing, the cd-shim trick).
