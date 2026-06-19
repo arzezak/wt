@@ -2,7 +2,6 @@ require "./wt/result"
 require "./wt/git"
 require "./wt/repo"
 require "./wt/resolver"
-require "./wt/picker"
 require "./wt/config"
 require "./wt/completion"
 require "./wt/commands/*"
@@ -14,7 +13,7 @@ module Wt
   wt — git worktrees, fuzzily
 
   USAGE
-    wt [cd] [name]          switch to a worktree (fzf-pick or resolve by name)
+    wt [cd] [name]          switch to a worktree (resolve by name, tab-completes)
     wt new <branch> [base]  create/checkout a worktree, cd into it
     wt rm [name]            remove a worktree (branch preserved)
     wt ls                   list all worktrees
@@ -25,7 +24,7 @@ module Wt
 
   cd
     bare "wt" is "wt cd". with a name, resolves by exact match then unique prefix.
-    with no name, fzf-picks if available, else lists worktrees.
+    with no name, lists available worktrees.
     errors out if the repo only has one worktree (nothing to switch to).
 
   new

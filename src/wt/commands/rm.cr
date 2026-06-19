@@ -9,8 +9,13 @@ module Wt
           return Result.none
         end
 
-        entry = select_entry(query, entries)
-        return Result.none unless entry
+        unless query && !query.empty?
+          names = entries.map(&.name).join(", ")
+          STDERR.puts "wt: pass a name (tab-completes): #{names}"
+          return Result.none
+        end
+
+        entry = Resolver.resolve(query, entries)
 
         inside = inside_worktree?(entry)
         if inside
@@ -35,18 +40,6 @@ module Wt
         STDERR.print "wt: you're inside #{entry.name}, remove and cd to main? [y/n] "
         answer = gets
         answer.try(&.strip.downcase) == "y"
-      end
-
-      private def self.select_entry(query : String?, entries : Array(Git::WorktreeEntry)) : Git::WorktreeEntry?
-        if query && !query.empty?
-          Resolver.resolve(query, entries)
-        elsif Picker.fzf_available?
-          Picker.pick(entries)
-        else
-          names = entries.map(&.name).join(", ")
-          STDERR.puts "wt: pass a name (tab-completes): #{names}"
-          nil
-        end
       end
     end
   end

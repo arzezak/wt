@@ -10,32 +10,14 @@ module Wt
 
         entries = Resolver.non_main_entries
 
-        if query && !query.empty?
-          resolve_by_name(query, entries)
-        else
-          pick_interactively(entries)
-        end
-      end
-
-      private def self.resolve_by_name(query : String, entries : Array(Git::WorktreeEntry)) : Result
-        match = Resolver.resolve(query, entries)
-        Result.cd(match.path)
-      end
-
-      private def self.pick_interactively(entries : Array(Git::WorktreeEntry)) : Result
-        unless Picker.fzf_available?
+        unless query && !query.empty?
           names = entries.map(&.name).join(", ")
           STDERR.puts "wt: pass a name (tab-completes): #{names}"
           return Result.none
         end
 
-        selected = Picker.pick(entries)
-        unless selected
-          STDERR.puts "wt: no worktree selected"
-          return Result.none
-        end
-
-        Result.cd(selected.path)
+        match = Resolver.resolve(query, entries)
+        Result.cd(match.path)
       end
     end
   end
