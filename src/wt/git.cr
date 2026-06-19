@@ -27,20 +27,6 @@ module Wt
       output.strip
     end
 
-    def self.run_raw(*args : String, chdir : String? = nil) : {Bool, String, String}
-      process = Process.new(
-        "git",
-        args.to_a,
-        output: Process::Redirect::Pipe,
-        error: Process::Redirect::Pipe,
-        chdir: chdir
-      )
-      output = process.output.gets_to_end
-      error = process.error.gets_to_end
-      status = process.wait
-      {status.success?, output.strip, error.strip}
-    end
-
     def self.worktree_list(chdir : String? = nil) : Array(WorktreeEntry)
       output = run(["worktree", "list", "--porcelain"], chdir: chdir)
       parse_worktree_list(output)
@@ -83,8 +69,14 @@ module Wt
     end
 
     def self.branch_exists?(branch : String, chdir : String? = nil) : Bool
-      success, _, _ = run_raw("show-ref", "--verify", "--quiet", "refs/heads/#{branch}", chdir: chdir)
-      success
+      process = Process.new(
+        "git",
+        ["show-ref", "--verify", "--quiet", "refs/heads/#{branch}"],
+        output: Process::Redirect::Close,
+        error: Process::Redirect::Close,
+        chdir: chdir
+      )
+      process.wait.success?
     end
 
     def self.common_dir(chdir : String? = nil) : String

@@ -8,8 +8,7 @@ module Wt
           return Result.none
         end
 
-        main_path = Repo.main_repo_path
-        entries = all_entries.reject { |entry| entry.path == main_path }
+        entries = Resolver.non_main_entries
 
         if query && !query.empty?
           resolve_by_name(query, entries)
@@ -20,7 +19,7 @@ module Wt
 
       private def self.resolve_by_name(query : String, entries : Array(Git::WorktreeEntry)) : Result
         match = Resolver.resolve(query, entries)
-        Result.cd(match.entry.path)
+        Result.cd(match.path)
       end
 
       private def self.pick_interactively(entries : Array(Git::WorktreeEntry)) : Result

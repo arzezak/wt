@@ -16,8 +16,7 @@ module Wt
       end
 
       private def self.ensure_worktree_root : Nil
-        root = Repo.worktree_root
-        Dir.mkdir_p(root) unless Dir.exists?(root)
+        Dir.mkdir_p(Repo.worktree_root)
         Repo.ensure_ignored
       end
 
@@ -48,8 +47,7 @@ module Wt
             STDERR.puts "wt: copy: skipping #{relative_path} (not found in main worktree)"
             next
           end
-          destination_dir = File.dirname(destination)
-          Dir.mkdir_p(destination_dir) unless Dir.exists?(destination_dir)
+          Dir.mkdir_p(File.dirname(destination))
           File.copy(source, destination)
           STDERR.puts "wt: copy: #{relative_path}"
         end

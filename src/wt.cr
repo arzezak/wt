@@ -43,10 +43,7 @@ module Wt
   def self.run(args : Array(String)) : Nil
     result = dispatch(args)
     result.render(STDOUT)
-  rescue ex : Git::CommandError
-    STDERR.puts "wt: #{ex.message}"
-    exit 1
-  rescue ex : Exception
+  rescue ex
     STDERR.puts "wt: #{ex.message}"
     exit 1
   end
@@ -73,7 +70,7 @@ module Wt
       Completion.completions_script(args.first? || "zsh")
     else
       STDERR.puts "wt: unknown subcommand '#{subcommand}'"
-      Result.print(HELP)
+      STDERR.puts HELP
       exit 1
     end
   end

@@ -25,18 +25,8 @@ module TestHelper
   end
 
   def self.cleanup(dir : String) : Nil
+    Wt::Repo.reset_cache
     FileUtils.rm_rf(dir)
-  end
-
-  private def self.list_worktrees(dir : String) : Array(String)
-    output = run_in(dir, "git", "worktree", "list", "--porcelain")
-    paths = [] of String
-    output.each_line do |line|
-      if line.starts_with?("worktree ")
-        paths << line.sub("worktree ", "")
-      end
-    end
-    paths
   end
 
   def self.run_in(dir : String, command : String, *args : String) : String

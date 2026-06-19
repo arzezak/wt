@@ -1,8 +1,13 @@
 module Wt
   module Repo
+    @@cached_main_repo_path : String? = nil
+
     def self.main_repo_path : String
-      common_dir = Git.common_dir
-      File.dirname(common_dir)
+      @@cached_main_repo_path ||= File.dirname(Git.common_dir)
+    end
+
+    def self.reset_cache : Nil
+      @@cached_main_repo_path = nil
     end
 
     def self.worktree_root : String
@@ -15,8 +20,7 @@ module Wt
     end
 
     def self.ensure_ignored : Nil
-      common_dir = Git.common_dir
-      exclude_file = File.join(common_dir, "info", "exclude")
+      exclude_file = File.join(Git.common_dir, "info", "exclude")
       marker = ".worktrees/"
 
       if File.exists?(exclude_file)

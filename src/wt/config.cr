@@ -13,9 +13,10 @@ module Wt
     end
 
     def self.load : Config
+      main_path = Repo.main_repo_path
       global = load_file(global_path)
-      repo = load_file(repo_path)
-      local = load_file(local_path)
+      repo = load_file(File.join(main_path, ".wt.yml"))
+      local = load_file(File.join(main_path, ".wt.local.yml"))
       merge(global, repo, local)
     end
 
@@ -23,16 +24,8 @@ module Wt
       File.join(ENV.fetch("XDG_CONFIG_HOME", File.join(Path.home, ".config")), "wt", "config.yml")
     end
 
-    private def self.repo_path : String?
-      File.join(Repo.main_repo_path, ".wt.yml")
-    end
-
-    private def self.local_path : String?
-      File.join(Repo.main_repo_path, ".wt.local.yml")
-    end
-
-    private def self.load_file(path : String?) : Config?
-      return nil unless path && File.exists?(path)
+    private def self.load_file(path : String) : Config?
+      return nil unless File.exists?(path)
       parse(File.read(path))
     rescue ex : YAML::ParseException
       STDERR.puts "wt: warning: failed to parse #{path}: #{ex.message}"

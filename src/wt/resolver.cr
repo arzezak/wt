@@ -1,20 +1,11 @@
 module Wt
   module Resolver
-    struct Match
-      getter entry : Git::WorktreeEntry
-
-      def initialize(@entry)
-      end
-    end
-
-    def self.resolve(name : String, entries : Array(Git::WorktreeEntry)) : Match
+    def self.resolve(name : String, entries : Array(Git::WorktreeEntry)) : Git::WorktreeEntry
       exact = entries.find { |entry| entry.name == name }
-      return Match.new(exact) if exact
+      return exact if exact
 
       prefix_matches = entries.select { |entry| entry.name.starts_with?(name) }
-      if prefix_matches.size == 1
-        return Match.new(prefix_matches.first)
-      end
+      return prefix_matches.first if prefix_matches.size == 1
 
       candidates = entries.map(&.name).join(", ")
       if prefix_matches.size > 1

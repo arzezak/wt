@@ -10,12 +10,12 @@ describe Wt::Resolver do
   describe ".resolve" do
     it "resolves exact match" do
       match = Wt::Resolver.resolve("feature-auth", entries)
-      match.entry.path.should eq("/repo/.worktrees/feature-auth")
+      match.path.should eq("/repo/.worktrees/feature-auth")
     end
 
     it "resolves unique prefix" do
       match = Wt::Resolver.resolve("bugfix", entries)
-      match.entry.path.should eq("/repo/.worktrees/bugfix-login")
+      match.path.should eq("/repo/.worktrees/bugfix-login")
     end
 
     it "raises on ambiguous prefix" do
