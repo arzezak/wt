@@ -1,33 +1,30 @@
 module Wt
-  module Repo
-    @@cached_main_repo_path : String? = nil
+  class Repo
+    getter main_repo_path : String
 
-    def self.main_repo_path : String
-      @@cached_main_repo_path ||= File.dirname(Git.common_dir)
+    def initialize(@git : Git)
+      common_dir = @git.common_dir
+      @main_repo_path = File.dirname(common_dir)
+      @exclude_file = File.join(common_dir, "info", "exclude")
     end
 
-    def self.reset_cache : Nil
-      @@cached_main_repo_path = nil
+    def worktree_root : String
+      File.join(@main_repo_path, ".worktrees")
     end
 
-    def self.worktree_root : String
-      File.join(main_repo_path, ".worktrees")
-    end
-
-    def self.worktree_path_for(branch : String) : String
+    def worktree_path_for(branch : String) : String
       sanitized = branch.gsub('/', '-')
       File.join(worktree_root, sanitized)
     end
 
-    def self.ensure_ignored : Nil
-      exclude_file = File.join(Git.common_dir, "info", "exclude")
+    def ensure_ignored : Nil
       marker = ".worktrees/"
 
-      if File.exists?(exclude_file)
-        return if File.read(exclude_file).each_line.any? { |line| line.strip == marker }
+      if File.exists?(@exclude_file)
+        return if File.read(@exclude_file).each_line.any? { |line| line.strip == marker }
       end
 
-      File.open(exclude_file, "a") do |file|
+      File.open(@exclude_file, "a") do |file|
         file.puts marker
       end
     end

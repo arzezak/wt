@@ -1,6 +1,9 @@
 module Wt
-  module Resolver
-    def self.resolve(name : String, entries : Array(Git::WorktreeEntry)) : Git::WorktreeEntry
+  class Resolver
+    def initialize(@repo : Repo, @git : Git)
+    end
+
+    def resolve(name : String, entries : Array(Git::WorktreeEntry)) : Git::WorktreeEntry
       exact = entries.find { |entry| entry.name == name }
       return exact if exact
 
@@ -15,12 +18,11 @@ module Wt
       raise "no worktree matching '#{name}' (available: #{candidates})"
     end
 
-    def self.non_main_entries : Array(Git::WorktreeEntry)
-      main_path = Repo.main_repo_path
-      Git.worktree_list.reject { |entry| entry.path == main_path }
+    def non_main_entries : Array(Git::WorktreeEntry)
+      @git.worktree_list.reject { |entry| entry.path == @repo.main_repo_path }
     end
 
-    def self.worktree_names : Array(String)
+    def worktree_names : Array(String)
       non_main_entries.map(&.name)
     end
   end

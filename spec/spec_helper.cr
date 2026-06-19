@@ -24,7 +24,6 @@ module TestHelper
   end
 
   def self.cleanup(dir : String) : Nil
-    Wt::Repo.reset_cache
     FileUtils.rm_rf(dir)
   end
 

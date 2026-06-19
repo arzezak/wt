@@ -1,14 +1,16 @@
 module Wt
   module Commands
-    module Cd
-      def self.run(query : String? = nil) : Result
-        all_entries = Git.worktree_list
-        if all_entries.size <= 1
+    class Cd
+      def initialize(@resolver : Resolver)
+      end
+
+      def run(query : String? = nil) : Result
+        entries = @resolver.non_main_entries
+
+        if entries.empty?
           STDERR.puts "wt: only one worktree here, use 'wt new <branch>' to create another"
           return Result.none
         end
-
-        entries = Resolver.non_main_entries
 
         unless query && !query.empty?
           names = entries.map(&.name).join(", ")
@@ -16,7 +18,7 @@ module Wt
           return Result.none
         end
 
-        match = Resolver.resolve(query, entries)
+        match = @resolver.resolve(query, entries)
         Result.cd(match.path)
       end
     end

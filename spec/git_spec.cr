@@ -9,28 +9,33 @@ describe Wt::Git do
     TestHelper.cleanup(dir)
   end
 
-  describe ".worktree_list" do
+  describe "#worktree_list" do
     it "returns the main worktree" do
-      entries = Wt::Git.worktree_list
+      git = Wt::Git.new
+      entries = git.worktree_list
+
       entries.size.should eq(1)
       entries.first.path.should eq(Dir.current)
       entries.first.branch.should_not be_nil
     end
   end
 
-  describe ".branch_exists?" do
+  describe "#branch_exists?" do
     it "returns true for existing branch" do
-      Wt::Git.branch_exists?("main").should be_true
+      git = Wt::Git.new
+      git.branch_exists?("main").should be_true
     end
 
     it "returns false for missing branch" do
-      Wt::Git.branch_exists?("nonexistent").should be_false
+      git = Wt::Git.new
+      git.branch_exists?("nonexistent").should be_false
     end
   end
 
-  describe ".common_dir" do
+  describe "#common_dir" do
     it "returns .git directory" do
-      Wt::Git.common_dir.should eq(File.join(Dir.current, ".git"))
+      git = Wt::Git.new
+      git.common_dir.should eq(File.join(Dir.current, ".git"))
     end
   end
 

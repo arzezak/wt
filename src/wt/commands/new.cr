@@ -1,8 +1,11 @@
 module Wt
   module Commands
-    module New
-      def self.run(branch : String, base : String? = nil, hooks : Bool = true) : Result
-        worktree_path = Repo.worktree_path_for(branch)
+    class New
+      def initialize(@git : Git, @repo : Repo)
+      end
+
+      def run(branch : String, base : String? = nil, hooks : Bool = true) : Result
+        worktree_path = @repo.worktree_path_for(branch)
 
         if Dir.exists?(worktree_path)
           STDERR.puts "wt: worktree already exists at #{worktree_path}"
@@ -15,33 +18,32 @@ module Wt
         Result.cd(worktree_path)
       end
 
-      private def self.ensure_worktree_root : Nil
-        Dir.mkdir_p(Repo.worktree_root)
-        Repo.ensure_ignored
+      private def ensure_worktree_root : Nil
+        Dir.mkdir_p(@repo.worktree_root)
+        @repo.ensure_ignored
       end
 
-      private def self.create_worktree(branch : String, worktree_path : String, base : String?) : Nil
-        if Git.branch_exists?(branch)
-          Git.run(["worktree", "add", worktree_path, branch])
+      private def create_worktree(branch : String, worktree_path : String, base : String?) : Nil
+        if @git.branch_exists?(branch)
+          @git.run(["worktree", "add", worktree_path, branch])
         else
           args = ["worktree", "add", "-b", branch, worktree_path]
           args << base if base
-          Git.run(args)
+          @git.run(args)
         end
       end
 
-      private def self.run_hooks(worktree_path : String) : Nil
-        config = Config.load
+      private def run_hooks(worktree_path : String) : Nil
+        config = Config.load(@repo.main_repo_path)
         return if config.empty?
 
         copy_files(config, worktree_path)
         run_after_create(config, worktree_path)
       end
 
-      private def self.copy_files(config : Config, worktree_path : String) : Nil
-        main_path = Repo.main_repo_path
+      private def copy_files(config : Config, worktree_path : String) : Nil
         config.copy.each do |relative_path|
-          source = File.join(main_path, relative_path)
+          source = File.join(@repo.main_repo_path, relative_path)
           destination = File.join(worktree_path, relative_path)
           unless File.exists?(source)
             STDERR.puts "wt: copy: skipping #{relative_path} (not found in main worktree)"
@@ -53,7 +55,7 @@ module Wt
         end
       end
 
-      private def self.run_after_create(config : Config, worktree_path : String) : Nil
+      private def run_after_create(config : Config, worktree_path : String) : Nil
         config.after_create.each do |command|
           STDERR.puts "wt: run: #{command}"
           status = Process.run(

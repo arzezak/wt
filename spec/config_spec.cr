@@ -11,7 +11,7 @@ describe Wt::Config do
     end
 
     it "loads empty config when no files exist" do
-      config = Wt::Config.load
+      config = Wt::Config.load(Dir.current)
       config.empty?.should be_true
     end
 
@@ -23,7 +23,8 @@ describe Wt::Config do
       after_create:
         - bundle install
       YAML
-      config = Wt::Config.load
+
+      config = Wt::Config.load(Dir.current)
       config.copy.should eq([".env", "config/master.key"])
       config.after_create.should eq(["bundle install"])
     end
@@ -39,7 +40,8 @@ describe Wt::Config do
       copy:
         - .env.local
       YAML
-      config = Wt::Config.load
+
+      config = Wt::Config.load(Dir.current)
       config.copy.should eq([".env.local"])
       config.after_create.should eq(["bundle install"])
     end

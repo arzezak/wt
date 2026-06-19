@@ -1,5 +1,5 @@
 module Wt
-  module Git
+  class Git
     class CommandError < Exception
       getter stderr : String
 
@@ -8,11 +8,11 @@ module Wt
       end
     end
 
-    def self.run(*args : String) : String
+    def run(*args : String) : String
       run(args.to_a)
     end
 
-    def self.run(args : Array(String), chdir : String? = nil) : String
+    def run(args : Array(String), chdir : String? = nil) : String
       process = Process.new(
         "git",
         args,
@@ -27,12 +27,27 @@ module Wt
       output.strip
     end
 
-    def self.worktree_list(chdir : String? = nil) : Array(WorktreeEntry)
+    def worktree_list(chdir : String? = nil) : Array(WorktreeEntry)
       output = run(["worktree", "list", "--porcelain"], chdir: chdir)
       parse_worktree_list(output)
     end
 
-    private def self.parse_worktree_list(output : String) : Array(WorktreeEntry)
+    def branch_exists?(branch : String, chdir : String? = nil) : Bool
+      process = Process.new(
+        "git",
+        ["show-ref", "--verify", "--quiet", "refs/heads/#{branch}"],
+        output: Process::Redirect::Close,
+        error: Process::Redirect::Close,
+        chdir: chdir
+      )
+      process.wait.success?
+    end
+
+    def common_dir(chdir : String? = nil) : String
+      run(["rev-parse", "--path-format=absolute", "--git-common-dir"], chdir: chdir)
+    end
+
+    private def parse_worktree_list(output : String) : Array(WorktreeEntry)
       entries = [] of WorktreeEntry
       current_path = ""
       current_head = ""
@@ -66,21 +81,6 @@ module Wt
       end
 
       entries
-    end
-
-    def self.branch_exists?(branch : String, chdir : String? = nil) : Bool
-      process = Process.new(
-        "git",
-        ["show-ref", "--verify", "--quiet", "refs/heads/#{branch}"],
-        output: Process::Redirect::Close,
-        error: Process::Redirect::Close,
-        chdir: chdir
-      )
-      process.wait.success?
-    end
-
-    def self.common_dir(chdir : String? = nil) : String
-      run(["rev-parse", "--path-format=absolute", "--git-common-dir"], chdir: chdir)
     end
 
     struct WorktreeEntry

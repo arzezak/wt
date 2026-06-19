@@ -1,9 +1,12 @@
 module Wt
-  module Completion
-    def self.complete(kind : String) : Result
+  class Completion
+    def initialize(@git : Git, @resolver : Resolver)
+    end
+
+    def complete(kind : String) : Result
       candidates = case kind
                    when "worktrees"
-                     Resolver.worktree_names
+                     @resolver.worktree_names
                    when "branches"
                      branch_names
                    when "refs"
@@ -26,13 +29,13 @@ module Wt
       end
     end
 
-    private def self.branch_names : Array(String)
-      output = Git.run("branch", "--format=%(refname:short)")
+    private def branch_names : Array(String)
+      output = @git.run("branch", "--format=%(refname:short)")
       output.split("\n").reject(&.empty?)
     end
 
-    private def self.ref_names : Array(String)
-      output = Git.run("for-each-ref", "--format=%(refname:short)", "refs/heads/", "refs/tags/", "refs/remotes/")
+    private def ref_names : Array(String)
+      output = @git.run("for-each-ref", "--format=%(refname:short)", "refs/heads/", "refs/tags/", "refs/remotes/")
       output.split("\n").reject(&.empty?)
     end
 

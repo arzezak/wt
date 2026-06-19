@@ -12,11 +12,10 @@ module Wt
       @copy.empty? && @after_create.empty?
     end
 
-    def self.load : Config
-      main_path = Repo.main_repo_path
+    def self.load(main_repo_path : String) : Config
       global = load_file(global_path)
-      repo = load_file(File.join(main_path, ".wt.yml"))
-      local = load_file(File.join(main_path, ".wt.local.yml"))
+      repo = load_file(File.join(main_repo_path, ".wt.yml"))
+      local = load_file(File.join(main_repo_path, ".wt.local.yml"))
       merge(global, repo, local)
     end
 
