@@ -2,6 +2,22 @@
 
 A small Crystal CLI for managing git worktrees, fuzzily.
 
+## Install
+
+Requires [Crystal](https://crystal-lang.org/) (`brew install crystal`).
+
+```sh
+make install
+```
+
+Add to your `.zshrc`:
+
+```sh
+eval "$(command wt init zsh)"
+```
+
+Reload your shell (`exec zsh`) and you're set. `make uninstall` removes the binary.
+
 ## Usage
 
 ```
@@ -20,12 +36,7 @@ When you omit the name, `wt` uses fzf if available, otherwise prints the list wi
 
 ### Tab completion
 
-```sh
-# Add to .zshrc
-eval "$(wt completions zsh)"
-```
-
-Completions are generated dynamically from the binary:
+Tab completion is set up automatically by `wt init zsh`. It completes:
 
 - `wt cd <tab>` / `wt rm <tab>`: worktree names
 - `wt new <tab>`: branch names
@@ -70,21 +81,6 @@ A compiled binary can't `cd` your shell (it's a child process). So `wt` is a **b
 
 Both are named `wt`. The function shadows the binary for interactive use and delegates with `command wt` (which bypasses functions and runs the executable on PATH).
 
-### Shim
-
-```zsh
-wt() {
-  local output
-  output=$(command wt "$@") || return
-
-  if [[ "$output" == cd\ * ]]; then
-    eval "$output"
-  elif [[ -n "$output" ]]; then
-    print -r -- "$output"
-  fi
-}
-```
-
 ### Stdout protocol
 
 The binary emits two kinds of output on stdout:
@@ -112,7 +108,7 @@ src/
     repo.cr          # main-repo resolution, worktree root, ignore handling
     resolver.cr      # name -> worktree (exact/unique-prefix), candidate lists
     picker.cr        # optional fzf integration
-    completion.cr    # __complete <kind> + completions <shell> script
+    completion.cr    # __complete <kind> + init <shell> (shim + completions)
     commands/
       cd.cr
       new.cr
@@ -123,12 +119,6 @@ spec/
 ```
 
 Commands return a small `Result` struct (e.g. `Result.new(cd: path)` or `Result.new(stdout: text)`). The entrypoint renders it to the shim protocol, keeping commands testable without touching real stdout.
-
-## Install
-
-Toolchain: `brew install crystal` (provides `crystal` + `shards`).
-
-Build locally, symlink/stow the binary into `~/.local/bin` (already on PATH), ship the shim as a zsh function in your dotfiles.
 
 ## Why Crystal
 

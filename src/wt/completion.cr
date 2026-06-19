@@ -16,10 +16,10 @@ module Wt
       Result.print(candidates.join("\n"))
     end
 
-    def self.completions_script(shell : String) : Result
+    def self.init_script(shell : String) : Result
       case shell
       when "zsh"
-        Result.print(zsh_completion_script)
+        Result.print(zsh_init_script)
       else
         STDERR.puts "wt: unsupported shell '#{shell}' (available: zsh)"
         Result.none
@@ -36,9 +36,18 @@ module Wt
       output.split("\n").reject(&.empty?)
     end
 
-    private def self.zsh_completion_script : String
+    private def self.zsh_init_script : String
       <<-'ZSH'
-      #compdef wt
+      wt() {
+        local output
+        output=$(command wt "$@") || return
+
+        if [[ "$output" == cd\ * ]]; then
+          eval "$output"
+        elif [[ -n "$output" ]]; then
+          print -r -- "$output"
+        fi
+      }
 
       _wt() {
         local -a subcommands=(
@@ -74,7 +83,7 @@ module Wt
         esac
       }
 
-      _wt "$@"
+      compdef _wt wt
       ZSH
     end
   end

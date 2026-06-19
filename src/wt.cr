@@ -66,8 +66,8 @@ module Wt
       Result.print("wt #{VERSION}")
     when "__complete"
       Completion.complete(args.first? || "subcommands")
-    when "completions"
-      Completion.completions_script(args.first? || "zsh")
+    when "init"
+      Completion.init_script(args.first? || "zsh")
     else
       STDERR.puts "wt: unknown subcommand '#{subcommand}'"
       STDERR.puts HELP
