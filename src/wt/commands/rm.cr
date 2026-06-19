@@ -12,9 +12,29 @@ module Wt
         entry = select_entry(query, entries)
         return Result.none unless entry
 
+        inside = inside_worktree?(entry)
+        if inside
+          return Result.none unless confirm_removal?(entry)
+        end
+
         Git.run(["worktree", "remove", entry.path])
         STDERR.puts "wt: removed #{entry.name} (branch preserved)"
-        Result.none
+
+        if inside
+          Result.cd(Repo.main_repo_path)
+        else
+          Result.none
+        end
+      end
+
+      private def self.inside_worktree?(entry : Git::WorktreeEntry) : Bool
+        Dir.current.starts_with?(entry.path)
+      end
+
+      private def self.confirm_removal?(entry : Git::WorktreeEntry) : Bool
+        STDERR.print "wt: you're inside #{entry.name}, remove and cd to main? [y/n] "
+        answer = gets
+        answer.try(&.strip.downcase) == "y"
       end
 
       private def self.select_entry(query : String?, entries : Array(Git::WorktreeEntry)) : Git::WorktreeEntry?
