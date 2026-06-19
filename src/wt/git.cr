@@ -48,39 +48,28 @@ module Wt
     end
 
     private def parse_worktree_list(output : String) : Array(WorktreeEntry)
-      entries = [] of WorktreeEntry
-      current_path = ""
-      current_head = ""
-      current_branch = nil
+      output.split("\n\n").compact_map { |stanza| parse_stanza(stanza) }
+    end
 
-      output.each_line do |line|
+    private def parse_stanza(stanza : String) : WorktreeEntry?
+      return nil if stanza.strip.empty?
+
+      path = ""
+      head = ""
+      branch = nil
+
+      stanza.each_line do |line|
         if line.starts_with?("worktree ")
-          current_path = line.sub("worktree ", "")
+          path = line.sub("worktree ", "")
         elsif line.starts_with?("HEAD ")
-          current_head = line.sub("HEAD ", "")
+          head = line.sub("HEAD ", "")
         elsif line.starts_with?("branch ")
-          current_branch = line.sub("branch refs/heads/", "")
-        elsif line.strip.empty?
-          entries << WorktreeEntry.new(
-            path: current_path,
-            head: current_head,
-            branch: current_branch
-          )
-          current_path = ""
-          current_head = ""
-          current_branch = nil
+          branch = line.sub("branch refs/heads/", "")
         end
       end
 
-      unless current_path.empty?
-        entries << WorktreeEntry.new(
-          path: current_path,
-          head: current_head,
-          branch: current_branch
-        )
-      end
-
-      entries
+      return nil if path.empty?
+      WorktreeEntry.new(path: path, head: head, branch: branch)
     end
 
     struct WorktreeEntry

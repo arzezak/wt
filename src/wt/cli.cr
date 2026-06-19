@@ -53,9 +53,7 @@ module Wt
       when "cd", "new", "rm", "ls", "list", "__complete"
         dispatch_repo_command(subcommand, args)
       else
-        STDERR.puts "wt: unknown subcommand '#{subcommand}'"
-        STDERR.puts HELP
-        exit 1
+        raise "unknown subcommand '#{subcommand}'\n#{HELP}"
       end
     end
 
@@ -76,29 +74,15 @@ module Wt
       when "__complete"
         Completion.new(git, resolver).complete(args.first? || "subcommands")
       else
-        Result.none
+        raise "BUG: unhandled subcommand '#{subcommand}'"
       end
     end
 
     private def dispatch_new(git : Git, repo : Repo, args : Array(String)) : Result
-      hooks = true
-      branch = nil
-      base = nil
-
-      args.each do |arg|
-        if arg == "--no-hooks"
-          hooks = false
-        elsif branch.nil?
-          branch = arg
-        else
-          base = arg
-        end
-      end
-
-      unless branch
-        STDERR.puts "wt: usage: wt new <branch> [base] [--no-hooks]"
-        exit 1
-      end
+      hooks = !args.delete("--no-hooks")
+      branch = args.shift?
+      base = args.shift?
+      raise "usage: wt new <branch> [base] [--no-hooks]" unless branch
 
       Commands::New.new(git, repo).run(branch, base, hooks: hooks)
     end
