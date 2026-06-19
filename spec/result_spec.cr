@@ -1,0 +1,30 @@
+require "./spec_helper"
+
+describe Wt::Result do
+  describe ".cd" do
+    it "renders cd directive" do
+      result = Wt::Result.cd("/some/path")
+      io = IO::Memory.new
+      result.render(io)
+      io.to_s.should eq("cd /some/path\n")
+    end
+  end
+
+  describe ".print" do
+    it "renders plain text" do
+      result = Wt::Result.print("hello world")
+      io = IO::Memory.new
+      result.render(io)
+      io.to_s.should eq("hello world\n")
+    end
+  end
+
+  describe ".none" do
+    it "renders nothing" do
+      result = Wt::Result.none
+      io = IO::Memory.new
+      result.render(io)
+      io.to_s.should eq("")
+    end
+  end
+end

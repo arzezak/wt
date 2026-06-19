@@ -1,0 +1,15 @@
+name: wt
+version: 0.1.0
+
+authors:
+  - Ariel Rzezak <arzezak@gmail.com>
+
+description: A small CLI for managing git worktrees, fuzzily.
+
+targets:
+  wt:
+    main: src/wt.cr
+
+crystal: ">= 1.20.0"
+
+license: MIT

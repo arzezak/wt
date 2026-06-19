@@ -76,6 +76,7 @@ Both are named `wt`. The function shadows the binary for interactive use and del
 wt() {
   local output
   output=$(command wt "$@") || return
+
   if [[ "$output" == cd\ * ]]; then
     eval "$output"
   elif [[ -n "$output" ]]; then
