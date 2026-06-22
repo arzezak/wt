@@ -33,6 +33,8 @@ Create a worktree, optionally from a base ref:
 wt new <branch> [base]
 ```
 
+When the branch exists, `wt new` checks it out into a new worktree. When the branch is new, it creates it from `[base]`, or from the current `HEAD` if no base is provided. Either way, it switches into the worktree when it finishes.
+
 Remove a worktree (branch preserved):
 
 ```sh
@@ -43,6 +45,13 @@ List worktrees:
 
 ```sh
 wt ls
+```
+
+Other commands:
+
+```sh
+wt help
+wt --version
 ```
 
 ### Resolution
@@ -64,7 +73,6 @@ Tab completion is set up automatically by `wt init zsh`. It completes:
 Per-repo `.wt.yml` (committed, shared with the team) with an optional `.wt.local.yml` override (gitignored, personal). Global defaults in `~/.config/wt/config.yml`. Merge order: global, repo, local.
 
 ```yaml
-# .wt.yml
 copy:
   - .env
   - .env.local
@@ -91,7 +99,7 @@ Skip all copy and after_create steps on `wt new`.
 
 `.wt.yml` can be committed to a repo, and `after_create` runs arbitrary shell commands. This is the same trust model as Makefiles and npm scripts: review `.wt.yml` before running `wt new` in an untrusted repo, or pass `--no-hooks`.
 
-## How it works
+## Shell integration
 
 ### The cd problem
 
@@ -117,32 +125,11 @@ Errors and human messages go to stderr so they never get `eval`d and hook output
 - `/` in branch names becomes `-` for the directory (`feature/foo` becomes `.worktrees/feature-foo`).
 - `.worktrees/` is added to `.git/info/exclude` (local-only, never the committed `.gitignore`).
 
-## Architecture
+## Development
 
-Shell out, don't reimplement. `Process.run` to `git`; no git library.
-
-```
-src/
-  wt.cr              # entrypoint
-  wt/
-    cli.cr           # subcommand dispatch, arg parsing
-    result.cr        # Result struct (cd/print/none)
-    git.cr           # thin wrapper over git worktree, rev-parse helpers
-    repo.cr          # main-repo resolution, worktree root, ignore handling
-    resolver.cr      # name -> worktree (exact/unique-prefix), candidate lists
-    config.cr        # .wt.yml / .wt.local.yml / global config loading
-    completion.cr    # __complete <kind> + init <shell> (shim + completions)
-    commands/
-      cd.cr
-      new.cr
-      rm.cr
-      ls.cr
-spec/
-  ...                # one spec per command + repo/git helpers
+```sh
+make build
+make test
 ```
 
-Commands return a small `Result` struct (e.g. `Result.cd(path)` or `Result.print(text)`). `CLI#run` renders it to the shim protocol, keeping commands testable without touching real stdout.
-
-## Why Crystal
-
-Ruby-ish syntax, compiles to a single fast binary, and actual specs. Good first-project size: small enough to finish, real enough to hit interesting bits (shelling out, output parsing, the cd-shim trick).
+`make test` runs `crystal spec`.
