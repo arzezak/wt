@@ -1,0 +1,5 @@
+[tools]
+crystal = "1.20.2"
+
+[env]
+_.path = { path = ["{{ tools.crystal.path }}/bin", "{{ tools.crystal.path }}/embedded/bin"], tools = true }
