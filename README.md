@@ -87,6 +87,10 @@ Commands run in the new worktree's directory, in order, streaming output. Stops 
 
 Skip all copy and after_create steps on `wt new`.
 
+### Trust model
+
+`.wt.yml` can be committed to a repo, and `after_create` runs arbitrary shell commands. This is the same trust model as Makefiles and npm scripts: review `.wt.yml` before running `wt new` in an untrusted repo, or pass `--no-hooks`.
+
 ## How it works
 
 ### The cd problem

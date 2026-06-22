@@ -8,6 +8,13 @@ describe Wt::Result do
       result.render(io)
       io.to_s.should eq("cd /some/path\n")
     end
+
+    it "escapes shell metacharacters in path" do
+      result = Wt::Result.cd("/repo/.worktrees/foo;rm -rf ~")
+      io = IO::Memory.new
+      result.render(io)
+      io.to_s.should eq("cd '/repo/.worktrees/foo;rm -rf ~'\n")
+    end
   end
 
   describe ".print" do

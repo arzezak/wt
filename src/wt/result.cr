@@ -20,7 +20,7 @@ module Wt
 
     def render(io : IO) : Nil
       if path = @cd_path
-        io.puts "cd #{path}"
+        io.puts "cd #{Process.quote(path)}"
       elsif text = @stdout
         io.puts text
       end

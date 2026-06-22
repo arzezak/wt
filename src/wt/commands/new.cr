@@ -43,8 +43,12 @@ module Wt
 
       private def copy_files(config : Config, worktree_path : String) : Nil
         config.copy.each do |relative_path|
-          source = File.join(@repo.main_repo_path, relative_path)
-          destination = File.join(worktree_path, relative_path)
+          source = File.expand_path(relative_path, @repo.main_repo_path)
+          destination = File.expand_path(relative_path, worktree_path)
+          unless source.starts_with?(@repo.main_repo_path + "/")
+            STDERR.puts "wt: copy: skipping #{relative_path} (path escapes repo)"
+            next
+          end
           unless File.exists?(source)
             STDERR.puts "wt: copy: skipping #{relative_path} (not found in main worktree)"
             next
