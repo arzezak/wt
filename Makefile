@@ -6,7 +6,7 @@ BINDIR = $(PREFIX)/bin
 build:
 	shards build --release
 
-test:
+test: build
 	crystal spec
 
 install: build
