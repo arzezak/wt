@@ -16,6 +16,24 @@ describe "wt commands (integration)" do
       exit_code.should eq(0)
       stdout.should contain("main")
     end
+
+    it "prints a column header" do
+      exit_code, stdout, _ = TestHelper.run_wt(Dir.current, "ls")
+
+      exit_code.should eq(0)
+      stdout.lines.first.should contain("BRANCH")
+      stdout.lines.first.should contain("HEAD")
+      stdout.lines.first.should contain("PATH")
+    end
+
+    it "aligns the HEAD column across rows" do
+      TestHelper.run_wt(Dir.current, "new", "a-much-longer-branch-name")
+
+      _, stdout, _ = TestHelper.run_wt(Dir.current, "ls")
+
+      head_columns = stdout.lines.map { |line| line.index("HEAD") || line.index(/\b[0-9a-f]{7}\b/) }
+      head_columns.uniq.size.should eq(1)
+    end
   end
 
   describe "new" do
