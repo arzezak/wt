@@ -18,6 +18,8 @@ module Wt
     cd
       bare "wt" is "wt cd". with a name, resolves by exact match then unique prefix.
       with no name, lists available worktrees.
+      "wt cd main" returns to the main worktree (also matches the main branch name).
+      "wt cd -" returns to the previous worktree.
       errors out if the repo only has one worktree (nothing to switch to).
 
     new
@@ -64,7 +66,7 @@ module Wt
 
       case subcommand
       when "cd"
-        Commands::Cd.new(resolver).run(args.first?)
+        Commands::Cd.new(resolver, repo).run(args.first?)
       when "new"
         dispatch_new(git, repo, args)
       when "rm"

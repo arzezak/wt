@@ -7,6 +7,8 @@ module Wt
       candidates = case kind
                    when "worktrees"
                      @resolver.worktree_names
+                   when "cd_targets"
+                     @resolver.worktree_names + ["main"]
                    when "branches"
                      branch_names
                    when "refs"
@@ -46,6 +48,7 @@ module Wt
         output=$(command wt "$@") || return
 
         if [[ "$output" == cd\ * ]]; then
+          export WT_PREV="$PWD"
           eval "$output"
         elif [[ -n "$output" ]]; then
           print -r -- "$output"
@@ -67,7 +70,12 @@ module Wt
         fi
 
         case "${words[2]}" in
-          cd|rm)
+          cd)
+            local -a worktrees
+            worktrees=(${(f)"$(command wt __complete cd_targets)"})
+            _describe 'worktree' worktrees
+            ;;
+          rm)
             local -a worktrees
             worktrees=(${(f)"$(command wt __complete worktrees)"})
             _describe 'worktree' worktrees

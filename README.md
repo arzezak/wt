@@ -25,6 +25,8 @@ Switch to a worktree (exact or unique-prefix match, tab-completes):
 ```sh
 wt [name]
 wt cd <name>
+wt cd main    # back to the main worktree (also matches the main branch name)
+wt cd -       # back to the previous worktree
 ```
 
 Create a worktree, optionally from a base ref:
@@ -58,7 +60,7 @@ wt --version
 
 When you pass a name, `wt` resolves it directly: exact match first, then unique prefix, then error with candidates.
 
-When you omit the name, `wt` lists the available worktrees.
+When you omit the name, `wt` lists the available worktrees. `wt cd main` returns to the main worktree, and `wt cd -` returns to the worktree you came from.
 
 ### Tab completion
 

@@ -21,6 +21,10 @@ module Wt
       @git.worktree_list.reject { |entry| entry.path == @repo.main_repo_path }
     end
 
+    def main_entry : Git::WorktreeEntry?
+      @git.worktree_list.find { |entry| entry.path == @repo.main_repo_path }
+    end
+
     def worktree_names : Array(String)
       non_main_entries.map(&.name)
     end

@@ -116,6 +116,41 @@ describe "wt commands (integration)" do
       exit_code.should eq(1)
       stderr.should contain("no worktree matching")
     end
+
+    it "returns to the main worktree with 'main'" do
+      TestHelper.run_wt(Dir.current, "new", "leaf")
+
+      exit_code, stdout, _ = TestHelper.run_wt(Dir.current, "cd", "main")
+
+      exit_code.should eq(0)
+      stdout.should start_with("cd ")
+      stdout.should_not contain(".worktrees")
+    end
+
+    it "returns to the previous worktree with '-'" do
+      previous = File.join(Dir.current, ".worktrees", "leaf")
+      TestHelper.run_wt(Dir.current, "new", "leaf")
+
+      ENV["WT_PREV"] = previous
+      begin
+        exit_code, stdout, _ = TestHelper.run_wt(Dir.current, "cd", "-")
+
+        exit_code.should eq(0)
+        stdout.should contain("leaf")
+      ensure
+        ENV.delete("WT_PREV")
+      end
+    end
+
+    it "errors on '-' when there is no previous worktree" do
+      ENV.delete("WT_PREV")
+
+      exit_code, stdout, stderr = TestHelper.run_wt(Dir.current, "cd", "-")
+
+      exit_code.should eq(0)
+      stdout.should be_empty
+      stderr.should contain("no previous worktree")
+    end
   end
 
   describe "rm" do
