@@ -35,21 +35,10 @@ module Wt
       end
 
       private def cd_worktree(query : String?) : Result
-        entries = @resolver.non_main_entries
+        entry = @resolver.pick(query, "only one worktree here, use 'wt new <branch>' to create another")
+        return Result.none unless entry
 
-        if entries.empty?
-          STDERR.puts "wt: only one worktree here, use 'wt new <branch>' to create another"
-          return Result.none
-        end
-
-        unless query && !query.empty?
-          names = entries.map(&.name).join(", ")
-          STDERR.puts "wt: pass a name (tab-completes): #{names}"
-          return Result.none
-        end
-
-        match = @resolver.resolve(query, entries)
-        Result.cd(match.path)
+        Result.cd(entry.path)
       end
 
       private def main_query?(query : String?) : Bool

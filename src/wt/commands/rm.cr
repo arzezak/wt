@@ -5,20 +5,8 @@ module Wt
       end
 
       def run(query : String? = nil) : Result
-        entries = @resolver.non_main_entries
-
-        if entries.empty?
-          STDERR.puts "wt: no worktrees to remove"
-          return Result.none
-        end
-
-        unless query && !query.empty?
-          names = entries.map(&.name).join(", ")
-          STDERR.puts "wt: pass a name (tab-completes): #{names}"
-          return Result.none
-        end
-
-        entry = @resolver.resolve(query, entries)
+        entry = @resolver.pick(query, "no worktrees to remove")
+        return Result.none unless entry
 
         inside = inside_worktree?(entry)
         if inside

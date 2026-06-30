@@ -8,6 +8,10 @@ module Wt
       @exclude_file = File.join(common_dir, "info", "exclude")
     end
 
+    def main?(entry : Git::WorktreeEntry) : Bool
+      entry.path == @main_repo_path
+    end
+
     def worktree_root : String
       File.join(@main_repo_path, ".worktrees")
     end

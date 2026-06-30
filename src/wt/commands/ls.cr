@@ -20,8 +20,7 @@ module Wt
 
       private def branch_label(entry : Git::WorktreeEntry) : String
         label = entry.branch || "(detached)"
-        main = entry.path == @repo.main_repo_path
-        main ? "#{label} *" : label
+        @repo.main?(entry) ? "#{label} *" : label
       end
 
       private def render_table(rows : Array(Tuple(String, String, String))) : String
