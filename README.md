@@ -1,4 +1,4 @@
-# wt
+# 🌳💻 wt
 
 A small Crystal CLI for managing git worktrees.
 

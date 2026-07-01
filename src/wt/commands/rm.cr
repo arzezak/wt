@@ -14,7 +14,7 @@ module Wt
         end
 
         @git.run(["worktree", "remove", entry.path])
-        STDERR.puts "wt: removed #{entry.name} (branch preserved)"
+        Log.puts "removed #{entry.name} (branch preserved)"
 
         if inside
           Result.cd(@repo.main_repo_path)
@@ -28,7 +28,7 @@ module Wt
       end
 
       private def confirm_removal?(entry : Git::WorktreeEntry) : Bool
-        STDERR.print "wt: you're inside #{entry.name}, remove and cd to main? [y/n] "
+        Log.print "you're inside #{entry.name}, remove and cd to main? [y/n] "
         answer = gets
         answer.try(&.strip.downcase) == "y"
       end

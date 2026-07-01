@@ -8,7 +8,7 @@ module Wt
         worktree_path = @repo.worktree_path_for(branch)
 
         if Dir.exists?(worktree_path)
-          STDERR.puts "wt: worktree already exists at #{worktree_path}"
+          Log.puts "worktree already exists at #{worktree_path}"
           return Result.cd(worktree_path)
         end
 
@@ -46,22 +46,22 @@ module Wt
           source = File.expand_path(relative_path, @repo.main_repo_path)
           destination = File.expand_path(relative_path, worktree_path)
           unless source.starts_with?(@repo.main_repo_path + "/")
-            STDERR.puts "wt: copy: skipping #{relative_path} (path escapes repo)"
+            Log.puts "copy: skipping #{relative_path} (path escapes repo)"
             next
           end
           unless File.exists?(source)
-            STDERR.puts "wt: copy: skipping #{relative_path} (not found in main worktree)"
+            Log.puts "copy: skipping #{relative_path} (not found in main worktree)"
             next
           end
           Dir.mkdir_p(File.dirname(destination))
           File.copy(source, destination)
-          STDERR.puts "wt: copy: #{relative_path}"
+          Log.puts "copy: #{relative_path}"
         end
       end
 
       private def run_after_create(config : Config, worktree_path : String) : Nil
         config.after_create.each do |command|
-          STDERR.puts "wt: run: #{command}"
+          Log.running(command)
           status = Process.run(
             "sh", ["-c", command],
             chdir: worktree_path,
@@ -69,7 +69,7 @@ module Wt
             error: STDERR,
           )
           unless status.success?
-            STDERR.puts "wt: after_create failed: #{command} (exit #{status.exit_code})"
+            Log.puts "after_create failed: #{command} (exit #{status.exit_code})"
             break
           end
         end

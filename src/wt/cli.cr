@@ -38,7 +38,7 @@ module Wt
       result = dispatch(args)
       result.render(STDOUT)
     rescue ex
-      STDERR.puts "wt: #{ex.message}"
+      Log.puts "#{ex.message}"
       exit 1
     end
 

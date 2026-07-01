@@ -22,12 +22,12 @@ module Wt
         previous = ENV["WT_PREV"]?
 
         if previous.nil? || previous.empty?
-          STDERR.puts "wt: no previous worktree"
+          Log.puts "no previous worktree"
           return Result.none
         end
 
         unless Dir.exists?(previous)
-          STDERR.puts "wt: previous worktree is gone: #{previous}"
+          Log.puts "previous worktree is gone: #{previous}"
           return Result.none
         end
 

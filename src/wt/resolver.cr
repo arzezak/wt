@@ -21,12 +21,12 @@ module Wt
       entries = non_main_entries
 
       if entries.empty?
-        STDERR.puts "wt: #{empty_message}"
+        Log.puts "#{empty_message}"
         return nil
       end
 
       unless query && !query.empty?
-        STDERR.puts "wt: pass a name (tab-completes): #{entries.map(&.name).join(", ")}"
+        Log.puts "pass a name (tab-completes): #{entries.map(&.name).join(", ")}"
         return nil
       end
 

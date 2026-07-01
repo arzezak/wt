@@ -1,3 +1,4 @@
+require "./wt/log"
 require "./wt/result"
 require "./wt/git"
 require "./wt/repo"

@@ -27,7 +27,7 @@ module Wt
       return nil unless File.exists?(path)
       parse(File.read(path))
     rescue ex : YAML::ParseException
-      STDERR.puts "wt: warning: failed to parse #{path}: #{ex.message}"
+      Log.puts "failed to parse #{path}: #{ex.message}"
       nil
     end
 

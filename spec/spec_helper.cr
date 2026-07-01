@@ -1,5 +1,6 @@
 require "spec"
 require "file_utils"
+require "../src/wt/log"
 require "../src/wt/result"
 require "../src/wt/git"
 require "../src/wt/repo"

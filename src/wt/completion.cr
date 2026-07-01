@@ -26,7 +26,7 @@ module Wt
       when "zsh"
         Result.print(zsh_init_script)
       else
-        STDERR.puts "wt: unsupported shell '#{shell}' (available: zsh)"
+        Log.puts "unsupported shell '#{shell}' (available: zsh)"
         Result.none
       end
     end
