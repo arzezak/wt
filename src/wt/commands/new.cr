@@ -60,11 +60,14 @@ module Wt
       end
 
       private def run_after_create(config : Config, worktree_path : String) : Nil
+        env = hook_env(worktree_path)
+
         config.after_create.each do |command|
           Log.running(command)
           status = Process.run(
             "sh", ["-c", command],
             chdir: worktree_path,
+            env: env,
             output: STDERR,
             error: STDERR,
           )
@@ -73,6 +76,10 @@ module Wt
             break
           end
         end
+      end
+
+      private def hook_env(worktree_path : String) : Hash(String, String)
+        {"WT_WORKTREE_NAME" => File.basename(worktree_path)}
       end
     end
   end

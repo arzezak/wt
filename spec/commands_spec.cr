@@ -80,6 +80,85 @@ describe "wt commands (integration)" do
     end
   end
 
+  describe "new (hooks)" do
+    it "runs after_create with WT_WORKTREE_NAME set" do
+      File.write(".wt.yml", <<-YAML)
+      after_create:
+        - echo "name=$WT_WORKTREE_NAME" > marker.txt
+      YAML
+
+      TestHelper.run_wt(Dir.current, "new", "feature/foo")
+
+      marker = File.join(Dir.current, ".worktrees", "feature-foo", "marker.txt")
+      File.read(marker).should eq("name=feature-foo\n")
+    end
+
+    it "keeps hook output off stdout so the cd directive stays clean" do
+      File.write(".wt.yml", <<-YAML)
+      after_create:
+        - echo "noise on stdout"
+      YAML
+
+      exit_code, stdout, stderr = TestHelper.run_wt(Dir.current, "new", "quiet-branch")
+
+      exit_code.should eq(0)
+      stdout.should start_with("cd ")
+      stdout.should_not contain("noise")
+      stderr.should contain("noise on stdout")
+    end
+
+    it "stops running after_create commands on first failure" do
+      File.write(".wt.yml", <<-YAML)
+      after_create:
+        - "false"
+        - touch should-not-exist.txt
+      YAML
+
+      _, _, stderr = TestHelper.run_wt(Dir.current, "new", "failing-branch")
+
+      marker = File.join(Dir.current, ".worktrees", "failing-branch", "should-not-exist.txt")
+      File.exists?(marker).should be_false
+      stderr.should contain("after_create failed")
+    end
+
+    it "copies files from the main worktree" do
+      File.write("shared.env", "SECRET=1")
+      File.write(".wt.yml", <<-YAML)
+      copy:
+        - shared.env
+      YAML
+
+      TestHelper.run_wt(Dir.current, "new", "copy-branch")
+
+      copied = File.join(Dir.current, ".worktrees", "copy-branch", "shared.env")
+      File.read(copied).should eq("SECRET=1")
+    end
+
+    it "skips a missing copy source with a warning on stderr" do
+      File.write(".wt.yml", <<-YAML)
+      copy:
+        - does-not-exist.env
+      YAML
+
+      exit_code, _, stderr = TestHelper.run_wt(Dir.current, "new", "missing-copy-branch")
+
+      exit_code.should eq(0)
+      stderr.should contain("skipping does-not-exist.env")
+    end
+
+    it "skips --no-hooks entirely" do
+      File.write(".wt.yml", <<-YAML)
+      after_create:
+        - touch should-not-exist.txt
+      YAML
+
+      TestHelper.run_wt(Dir.current, "new", "no-hooks-branch", "--no-hooks")
+
+      marker = File.join(Dir.current, ".worktrees", "no-hooks-branch", "should-not-exist.txt")
+      File.exists?(marker).should be_false
+    end
+  end
+
   describe "cd" do
     it "reports single worktree" do
       exit_code, stdout, stderr = TestHelper.run_wt(Dir.current, "cd", "anything")

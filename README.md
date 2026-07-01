@@ -93,6 +93,24 @@ Files to copy from the main worktree into the new one. These are typically gitig
 
 Commands run in the new worktree's directory, in order, streaming output. Stops on first non-zero exit. The worktree is already created, so it stays in place for you to fix manually.
 
+Each command is announced on stderr with a 🌳 prefix (as are `copy` files) so it's easy to tell wt's own output apart from the command's.
+
+Each command runs with `WT_WORKTREE_NAME` set to the worktree's directory name (e.g. `feature-foo`), useful for isolating per-worktree resources like a database name.
+
+For example, giving each worktree its own Rails development/test database:
+
+```yaml
+after_create:
+  - |
+    cat > .env.local << ENV
+    DB_DATABASE=${WT_WORKTREE_NAME}_development
+    DB_TEST_DATABASE=${WT_WORKTREE_NAME}_test
+    ENV
+  - bundle install
+  - yarn install
+  - bin/rails db:create db:schema:load
+```
+
 ### `--no-hooks`
 
 Skip all copy and after_create steps on `wt new`.
