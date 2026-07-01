@@ -65,8 +65,8 @@ module Wt
           status = Process.run(
             "sh", ["-c", command],
             chdir: worktree_path,
-            output: Process::Redirect::Inherit,
-            error: Process::Redirect::Inherit,
+            output: STDERR,
+            error: STDERR,
           )
           unless status.success?
             STDERR.puts "wt: after_create failed: #{command} (exit #{status.exit_code})"
