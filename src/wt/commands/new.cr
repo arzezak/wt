@@ -55,7 +55,7 @@ module Wt
           end
           Dir.mkdir_p(File.dirname(destination))
           File.copy(source, destination)
-          Log.puts "copy: #{relative_path}"
+          Log.copying(relative_path)
         end
       end
 

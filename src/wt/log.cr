@@ -13,5 +13,10 @@ module Wt
     def self.running(command : String) : Nil
       STDERR.puts "🌳 run: #{command}"
     end
+
+    # Announces a file copied from the main worktree, tree-prefixed to match `running`.
+    def self.copying(relative_path : String) : Nil
+      STDERR.puts "🌳 copy: #{relative_path}"
+    end
   end
 end
