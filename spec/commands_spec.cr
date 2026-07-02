@@ -259,7 +259,7 @@ describe "wt commands (integration)" do
       exit_code, stdout, _ = TestHelper.run_wt(Dir.current, "help")
 
       exit_code.should eq(0)
-      stdout.should contain("git worktrees, fuzzily")
+      stdout.should contain("git worktrees")
     end
   end
 

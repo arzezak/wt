@@ -3,7 +3,7 @@ module Wt
     VERSION = "0.1.0"
 
     HELP = <<-HELP
-    wt — git worktrees, fuzzily
+    wt — git worktrees
 
     USAGE
       wt [cd] [name]          switch to a worktree (resolve by name, tab-completes)

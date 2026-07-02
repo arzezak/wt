@@ -2,6 +2,10 @@
 
 A small Crystal CLI for managing git worktrees.
 
+## Who this is for
+
+wt is for people who want to create, switch between, and remove worktrees by hand from the terminal, and keep an eye on what exists. If you want manual control over your worktrees rather than delegating that to automation, wt is for you.
+
 ## Install
 
 Requires [Crystal](https://crystal-lang.org/) (`brew install crystal`).

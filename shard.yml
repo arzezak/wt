@@ -4,7 +4,7 @@ version: 0.1.0
 authors:
   - Ariel Rzezak <arzezak@gmail.com>
 
-description: A small CLI for managing git worktrees, fuzzily.
+description: A small Crystal CLI for managing git worktrees.
 
 targets:
   wt:
