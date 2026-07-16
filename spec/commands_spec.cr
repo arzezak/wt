@@ -22,17 +22,24 @@ describe "wt commands (integration)" do
 
       exit_code.should eq(0)
       stdout.lines.first.should contain("BRANCH")
-      stdout.lines.first.should contain("HEAD")
+      stdout.lines.first.should_not contain("HEAD")
       stdout.lines.first.should contain("PATH")
     end
 
-    it "aligns the HEAD column across rows" do
-      TestHelper.run_wt(Dir.current, "new", "a-much-longer-branch-name")
-
+    it "shortens home directory to tilde" do
       _, stdout, _ = TestHelper.run_wt(Dir.current, "ls")
 
-      head_columns = stdout.lines.map { |line| line.index("HEAD") || line.index(/\b[0-9a-f]{7}\b/) }
-      head_columns.uniq.size.should eq(1)
+      path_column = stdout.lines.skip(1).map { |line| line.split(/\s{2,}/).last }
+      path_column.each do |path|
+        path.should_not start_with(Path.home.to_s)
+      end
+    end
+
+    it "rejects unknown flags" do
+      exit_code, _, stderr = TestHelper.run_wt(Dir.current, "ls", "-b")
+
+      exit_code.should_not eq(0)
+      stderr.should contain("unknown flag '-b'")
     end
   end
 

@@ -72,6 +72,8 @@ module Wt
       when "rm"
         Commands::Rm.new(resolver, git, repo).run(args.first?)
       when "ls", "list"
+        unknown = args.find { |a| a.starts_with?("-") }
+        raise "unknown flag '#{unknown}' for ls" if unknown
         Commands::Ls.new(git, repo).run
       when "__complete"
         Completion.new(git, resolver).complete(args.first? || "subcommands")
