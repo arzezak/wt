@@ -9,7 +9,7 @@ module Wt
       wt [cd] [name]          switch to a worktree (resolve by name, tab-completes)
       wt new <branch> [base]  create/checkout a worktree, cd into it
       wt rm [name]            remove a worktree (branch preserved)
-      wt ls                   list all worktrees
+      wt ls [-l]              list all worktrees (-l/--long adds the HEAD sha)
       wt help                 this text
 
     WHERE
@@ -72,9 +72,10 @@ module Wt
       when "rm"
         Commands::Rm.new(resolver, git, repo).run(args.first?)
       when "ls", "list"
+        long = args.delete("-l") || args.delete("--long")
         unknown = args.find { |a| a.starts_with?("-") }
         raise "unknown flag '#{unknown}' for ls" if unknown
-        Commands::Ls.new(git, repo).run
+        Commands::Ls.new(git, repo).run(long: !long.nil?)
       when "__complete"
         Completion.new(git, resolver).complete(args.first? || "subcommands")
       else

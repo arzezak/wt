@@ -35,6 +35,24 @@ describe "wt commands (integration)" do
       end
     end
 
+    it "adds the HEAD column with -l" do
+      exit_code, stdout, _ = TestHelper.run_wt(Dir.current, "ls", "-l")
+
+      exit_code.should eq(0)
+      stdout.lines.first.should contain("BRANCH")
+      stdout.lines.first.should contain("HEAD")
+      stdout.lines.first.should contain("PATH")
+    end
+
+    it "aligns the HEAD column across rows with -l" do
+      TestHelper.run_wt(Dir.current, "new", "a-much-longer-branch-name")
+
+      _, stdout, _ = TestHelper.run_wt(Dir.current, "ls", "-l")
+
+      head_columns = stdout.lines.map { |line| line.index(/\b(HEAD|[0-9a-f]{7})\b/) }
+      head_columns.uniq.size.should eq(1)
+    end
+
     it "rejects unknown flags" do
       exit_code, _, stderr = TestHelper.run_wt(Dir.current, "ls", "-b")
 
