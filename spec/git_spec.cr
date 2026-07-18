@@ -1,13 +1,7 @@
 require "./spec_helper"
 
 describe Wt::Git do
-  around_each do |example|
-    dir = TestHelper.create_temp_repo
-    Dir.cd(dir) do
-      example.run
-    end
-    TestHelper.cleanup(dir)
-  end
+  around_each { |example| TestHelper.with_temp_repo(example) }
 
   describe "#worktree_list" do
     it "returns the main worktree" do
@@ -17,6 +11,7 @@ describe Wt::Git do
       entries.size.should eq(1)
       entries.first.path.should eq(Dir.current)
       entries.first.branch.should_not be_nil
+      entries.first.main?.should be_true
     end
   end
 

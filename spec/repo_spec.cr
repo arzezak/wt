@@ -1,13 +1,7 @@
 require "./spec_helper"
 
 describe Wt::Repo do
-  around_each do |example|
-    dir = TestHelper.create_temp_repo
-    Dir.cd(dir) do
-      example.run
-    end
-    TestHelper.cleanup(dir)
-  end
+  around_each { |example| TestHelper.with_temp_repo(example) }
 
   describe "#main_repo_path" do
     it "returns the repo root" do

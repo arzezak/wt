@@ -10,9 +10,9 @@ module Wt
                    when "cd_targets"
                      @resolver.worktree_names + ["main"]
                    when "branches"
-                     branch_names
+                     git_lines("branch", "--format=%(refname:short)")
                    when "refs"
-                     ref_names
+                     git_lines("for-each-ref", "--format=%(refname:short)", "refs/heads/", "refs/tags/", "refs/remotes/")
                    when "subcommands"
                      ["cd", "new", "rm", "ls", "help"]
                    else
@@ -31,14 +31,8 @@ module Wt
       end
     end
 
-    private def branch_names : Array(String)
-      output = @git.run("branch", "--format=%(refname:short)")
-      output.split("\n").reject(&.empty?)
-    end
-
-    private def ref_names : Array(String)
-      output = @git.run("for-each-ref", "--format=%(refname:short)", "refs/heads/", "refs/tags/", "refs/remotes/")
-      output.split("\n").reject(&.empty?)
+    private def git_lines(*args : String) : Array(String)
+      @git.run(*args).lines.reject(&.empty?)
     end
 
     private def self.zsh_init_script : String

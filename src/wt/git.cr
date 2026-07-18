@@ -13,18 +13,11 @@ module Wt
     end
 
     def run(args : Array(String), chdir : String? = nil) : String
-      process = Process.new(
-        "git",
-        args,
-        output: Process::Redirect::Pipe,
-        error: Process::Redirect::Pipe,
-        chdir: chdir
-      )
-      output = process.output.gets_to_end
-      error = process.error.gets_to_end
-      status = process.wait
-      raise CommandError.new(error) unless status.success?
-      output.strip
+      output = IO::Memory.new
+      error = IO::Memory.new
+      status = Process.run("git", args, output: output, error: error, chdir: chdir)
+      raise CommandError.new(error.to_s) unless status.success?
+      output.to_s.strip
     end
 
     def worktree_list(chdir : String? = nil) : Array(WorktreeEntry)
@@ -33,14 +26,7 @@ module Wt
     end
 
     def branch_exists?(branch : String, chdir : String? = nil) : Bool
-      process = Process.new(
-        "git",
-        ["show-ref", "--verify", "--quiet", "refs/heads/#{branch}"],
-        output: Process::Redirect::Close,
-        error: Process::Redirect::Close,
-        chdir: chdir
-      )
-      process.wait.success?
+      Process.run("git", ["show-ref", "--verify", "--quiet", "refs/heads/#{branch}"], chdir: chdir).success?
     end
 
     def common_dir(chdir : String? = nil) : String
@@ -48,7 +34,9 @@ module Wt
     end
 
     private def parse_worktree_list(output : String) : Array(WorktreeEntry)
-      output.split("\n\n").compact_map { |stanza| parse_stanza(stanza) }
+      entries = output.split("\n\n").compact_map { |stanza| parse_stanza(stanza) }
+      # git lists the main worktree first.
+      entries.map_with_index { |entry, index| index.zero? ? entry.copy_with(main: true) : entry }
     end
 
     private def parse_stanza(stanza : String) : WorktreeEntry?
@@ -60,11 +48,11 @@ module Wt
 
       stanza.each_line do |line|
         if line.starts_with?("worktree ")
-          path = line.sub("worktree ", "")
+          path = line.lchop("worktree ")
         elsif line.starts_with?("HEAD ")
-          head = line.sub("HEAD ", "")
+          head = line.lchop("HEAD ")
         elsif line.starts_with?("branch ")
-          branch = line.sub("branch refs/heads/", "")
+          branch = line.lchop("branch refs/heads/")
         end
       end
 
@@ -72,20 +60,17 @@ module Wt
       WorktreeEntry.new(path: path, head: head, branch: branch)
     end
 
-    struct WorktreeEntry
-      getter path : String
-      getter head : String
-      getter branch : String?
-
-      def initialize(@path, @head, @branch)
+    record WorktreeEntry, path : String, head : String, branch : String?, main : Bool = false do
+      def main? : Bool
+        main
       end
 
       def short_head : String
-        @head[0, 7]
+        head[0, 7]
       end
 
       def name : String
-        File.basename(@path)
+        File.basename(path)
       end
     end
   end

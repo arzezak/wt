@@ -38,7 +38,7 @@ module Wt
       result = dispatch(args)
       result.render(STDOUT)
     rescue ex
-      Log.puts "#{ex.message}"
+      Log.puts(ex.message || ex.class.name)
       exit 1
     end
 
@@ -52,44 +52,44 @@ module Wt
         Result.print("wt #{VERSION}")
       when "init"
         Completion.init_script(args.first? || "zsh")
-      when "cd", "new", "rm", "ls", "list", "__complete"
-        dispatch_repo_command(subcommand, args)
+      when "cd"
+        Commands::Cd.new(resolver).run(args.first?)
+      when "new"
+        dispatch_new(args)
+      when "rm"
+        Commands::Rm.new(resolver, git).run(args.first?)
+      when "ls", "list"
+        dispatch_ls(args)
+      when "__complete"
+        Completion.new(git, resolver).complete(args.first? || "subcommands")
       else
         raise "unknown subcommand '#{subcommand}'\n#{HELP}"
       end
     end
 
-    private def dispatch_repo_command(subcommand : String, args : Array(String)) : Result
-      git = Git.new
-      repo = Repo.new(git)
-      resolver = Resolver.new(repo, git)
+    private def dispatch_ls(args : Array(String)) : Result
+      long = args.delete("-l") || args.delete("--long")
+      unknown = args.find(&.starts_with?("-"))
+      raise "unknown flag '#{unknown}' for ls" if unknown
 
-      case subcommand
-      when "cd"
-        Commands::Cd.new(resolver, repo).run(args.first?)
-      when "new"
-        dispatch_new(git, repo, args)
-      when "rm"
-        Commands::Rm.new(resolver, git, repo).run(args.first?)
-      when "ls", "list"
-        long = args.delete("-l") || args.delete("--long")
-        unknown = args.find { |a| a.starts_with?("-") }
-        raise "unknown flag '#{unknown}' for ls" if unknown
-        Commands::Ls.new(git, repo).run(long: !long.nil?)
-      when "__complete"
-        Completion.new(git, resolver).complete(args.first? || "subcommands")
-      else
-        raise "BUG: unhandled subcommand '#{subcommand}'"
-      end
+      Commands::Ls.new(git).run(long: !long.nil?)
     end
 
-    private def dispatch_new(git : Git, repo : Repo, args : Array(String)) : Result
+    private def dispatch_new(args : Array(String)) : Result
       hooks = !args.delete("--no-hooks")
       branch = args.shift?
       base = args.shift?
       raise "usage: wt new <branch> [base] [--no-hooks]" unless branch
 
-      Commands::New.new(git, repo).run(branch, base, hooks: hooks)
+      Commands::New.new(git, Repo.new(git)).run(branch, base, hooks: hooks)
+    end
+
+    private def git : Git
+      @git ||= Git.new
+    end
+
+    private def resolver : Resolver
+      @resolver ||= Resolver.new(git)
     end
   end
 end

@@ -1,27 +1,24 @@
 module Wt
   module Commands
     class Cd
-      PREVIOUS_TOKEN = "-"
-      MAIN_TOKEN = "main"
-
-      def initialize(@resolver : Resolver, @repo : Repo)
+      def initialize(@resolver : Resolver)
       end
 
       def run(query : String? = nil) : Result
-        return cd_previous if query == PREVIOUS_TOKEN
+        return cd_previous if query == "-"
         return cd_main if main_query?(query)
 
         cd_worktree(query)
       end
 
       private def cd_main : Result
-        Result.cd(@repo.main_repo_path)
+        Result.cd(@resolver.main_entry.path)
       end
 
       private def cd_previous : Result
-        previous = ENV["WT_PREV"]?
+        previous = ENV["WT_PREV"]?.presence
 
-        if previous.nil? || previous.empty?
+        unless previous
           Log.puts "no previous worktree"
           return Result.none
         end
@@ -43,10 +40,9 @@ module Wt
 
       private def main_query?(query : String?) : Bool
         return false unless query
-        return true if query == MAIN_TOKEN
+        return true if query == "main"
 
-        main = @resolver.main_entry
-        !main.nil? && query == main.branch
+        query == @resolver.main_entry.branch
       end
     end
   end

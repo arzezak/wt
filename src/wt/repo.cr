@@ -1,19 +1,14 @@
 module Wt
   class Repo
-    getter main_repo_path : String
-
     def initialize(@git : Git)
-      common_dir = @git.common_dir
-      @main_repo_path = File.dirname(common_dir)
-      @exclude_file = File.join(common_dir, "info", "exclude")
     end
 
-    def main?(entry : Git::WorktreeEntry) : Bool
-      entry.path == @main_repo_path
+    def main_repo_path : String
+      File.dirname(common_dir)
     end
 
     def worktree_root : String
-      File.join(@main_repo_path, ".worktrees")
+      File.join(main_repo_path, ".worktrees")
     end
 
     def worktree_path_for(branch : String) : String
@@ -23,14 +18,20 @@ module Wt
 
     def ensure_ignored : Nil
       marker = ".worktrees/"
+      exclude_file = File.join(common_dir, "info", "exclude")
 
-      if File.exists?(@exclude_file)
-        return if File.read(@exclude_file).each_line.any? { |line| line.strip == marker }
+      if File.exists?(exclude_file)
+        return if File.read(exclude_file).each_line.any? { |line| line.strip == marker }
       end
 
-      File.open(@exclude_file, "a") do |file|
+      File.open(exclude_file, "a") do |file|
         file.puts marker
       end
+    end
+
+    # Lazy so commands that never need the repo path skip the git spawn.
+    private def common_dir : String
+      @common_dir ||= @git.common_dir
     end
   end
 end

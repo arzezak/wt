@@ -1,9 +1,9 @@
 module Wt
   class Resolver
-    def initialize(@repo : Repo, @git : Git)
+    def initialize(@git : Git)
     end
 
-    def resolve(name : String, entries : Array(Git::WorktreeEntry)) : Git::WorktreeEntry
+    def self.resolve(name : String, entries : Array(Git::WorktreeEntry)) : Git::WorktreeEntry
       exact = entries.find { |entry| entry.name == name }
       return exact if exact
 
@@ -21,24 +21,25 @@ module Wt
       entries = non_main_entries
 
       if entries.empty?
-        Log.puts "#{empty_message}"
+        Log.puts empty_message
         return nil
       end
 
-      unless query && !query.empty?
+      query = query.presence
+      unless query
         Log.puts "pass a name (tab-completes): #{entries.map(&.name).join(", ")}"
         return nil
       end
 
-      resolve(query, entries)
+      Resolver.resolve(query, entries)
     end
 
     def non_main_entries : Array(Git::WorktreeEntry)
-      worktrees.reject { |entry| @repo.main?(entry) }
+      worktrees.reject(&.main?)
     end
 
-    def main_entry : Git::WorktreeEntry?
-      worktrees.find { |entry| @repo.main?(entry) }
+    def main_entry : Git::WorktreeEntry
+      worktrees.find(&.main?) || raise "cannot find the main worktree"
     end
 
     def worktree_names : Array(String)

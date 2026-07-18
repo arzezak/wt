@@ -35,8 +35,6 @@ module Wt
 
       private def run_hooks(worktree_path : String) : Nil
         config = Config.load(@repo.main_repo_path)
-        return if config.empty?
-
         copy_files(config, worktree_path)
         run_after_create(config, worktree_path)
       end
@@ -55,7 +53,7 @@ module Wt
           end
           Dir.mkdir_p(File.dirname(destination))
           File.copy(source, destination)
-          Log.copying(relative_path)
+          Log.step("copy", relative_path)
         end
       end
 
@@ -63,7 +61,7 @@ module Wt
         env = hook_env(worktree_path)
 
         config.after_create.each do |command|
-          Log.running(command)
+          Log.step("run", command)
           status = Process.run(
             "sh", ["-c", command],
             chdir: worktree_path,

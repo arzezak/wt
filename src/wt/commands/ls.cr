@@ -1,7 +1,7 @@
 module Wt
   module Commands
     class Ls
-      def initialize(@git : Git, @repo : Repo)
+      def initialize(@git : Git)
       end
 
       def run(long : Bool = false) : Result
@@ -26,13 +26,14 @@ module Wt
       private def render_table(rows : Array(Array(String))) : String
         widths = column_widths(rows)
         lines = rows.map do |row|
-          row.map_with_index { |cell, i| i == row.size - 1 ? cell : cell.ljust(widths[i]) }.join("  ")
+          row.map_with_index { |cell, i| (width = widths[i]?) ? cell.ljust(width) : cell }.join("  ")
         end
         lines.join("\n")
       end
 
+      # The last column has no width because it is left unpadded.
       private def column_widths(rows : Array(Array(String))) : Array(Int32)
-        (0...rows.first.size).map { |i| rows.max_of { |row| row[i].size } }
+        (0...rows.first.size - 1).map { |i| rows.max_of { |row| row[i].size } }
       end
 
       private def tilde(path : String) : String
@@ -42,7 +43,7 @@ module Wt
 
       private def branch_label(entry : Git::WorktreeEntry) : String
         label = entry.branch || "(detached)"
-        @repo.main?(entry) ? "#{label} *" : label
+        entry.main? ? "#{label} *" : label
       end
     end
   end

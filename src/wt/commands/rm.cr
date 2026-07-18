@@ -1,7 +1,7 @@
 module Wt
   module Commands
     class Rm
-      def initialize(@resolver : Resolver, @git : Git, @repo : Repo)
+      def initialize(@resolver : Resolver, @git : Git)
       end
 
       def run(query : String? = nil) : Result
@@ -17,7 +17,7 @@ module Wt
         Log.puts "removed #{entry.name} (branch preserved)"
 
         if inside
-          Result.cd(@repo.main_repo_path)
+          Result.cd(@resolver.main_entry.path)
         else
           Result.none
         end

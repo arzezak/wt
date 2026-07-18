@@ -8,10 +8,6 @@ module Wt
     def initialize(@copy = [] of String, @after_create = [] of String)
     end
 
-    def empty? : Bool
-      @copy.empty? && @after_create.empty?
-    end
-
     def self.load(main_repo_path : String) : Config
       global = load_file(global_path)
       repo = load_file(File.join(main_repo_path, ".wt.yml"))

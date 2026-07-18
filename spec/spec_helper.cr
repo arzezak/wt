@@ -1,62 +1,50 @@
 require "spec"
 require "file_utils"
-require "../src/wt/log"
-require "../src/wt/result"
-require "../src/wt/git"
-require "../src/wt/repo"
-require "../src/wt/resolver"
-require "../src/wt/config"
-require "../src/wt/completion"
-require "../src/wt/commands/*"
+require "../src/wt/**"
 
 module TestHelper
   BINARY_PATH = File.expand_path(File.join(__DIR__, "..", "bin", "wt"))
 
+  # Runs the example inside a fresh temp git repo, cleaning up afterwards.
+  # Use as: around_each { |example| TestHelper.with_temp_repo(example) }
+  def self.with_temp_repo(example) : Nil
+    dir = create_temp_repo
+    begin
+      Dir.cd(dir) do
+        example.run
+      end
+    ensure
+      FileUtils.rm_rf(dir)
+    end
+  end
+
   def self.create_temp_repo : String
     dir = File.tempname("wt-test")
     Dir.mkdir_p(dir)
-    run_in(dir, "git", "init")
-    run_in(dir, "git", "config", "user.email", "test@test.com")
-    run_in(dir, "git", "config", "user.name", "Test")
+    run_in("git", "init", dir: dir)
     File.write(File.join(dir, "README.md"), "test repo")
-    run_in(dir, "git", "add", ".")
-    run_in(dir, "git", "commit", "-m", "initial")
+    run_in("git", "add", ".", dir: dir)
+    run_in("git", "-c", "user.email=test@test.com", "-c", "user.name=Test", "commit", "-m", "initial", dir: dir)
     dir
   end
 
-  def self.cleanup(dir : String) : Nil
-    FileUtils.rm_rf(dir)
-  end
-
-  def self.run_in(dir : String, command : String, *args : String) : String
-    process = Process.new(
-      command,
-      args.to_a,
-      output: Process::Redirect::Pipe,
-      error: Process::Redirect::Pipe,
-      chdir: dir
-    )
-    output = process.output.gets_to_end
-    error = process.error.gets_to_end
-    status = process.wait
+  def self.run_in(command : String, *args : String, dir : String = Dir.current) : String
+    status, stdout, stderr = capture(command, args.to_a, dir)
     unless status.success?
-      raise "#{command} #{args.join(" ")} failed in #{dir}: #{error}"
+      raise "#{command} #{args.join(" ")} failed in #{dir}: #{stderr}"
     end
-    output.strip
+    stdout
   end
 
-  def self.run_wt(dir : String, *args : String) : {Int32, String, String}
-    binary = BINARY_PATH
-    process = Process.new(
-      binary,
-      args.to_a,
-      output: Process::Redirect::Pipe,
-      error: Process::Redirect::Pipe,
-      chdir: dir
-    )
-    stdout = process.output.gets_to_end
-    stderr = process.error.gets_to_end
-    status = process.wait
-    {status.exit_code, stdout.strip, stderr.strip}
+  def self.run_wt(*args : String, dir : String = Dir.current) : {Int32, String, String}
+    status, stdout, stderr = capture(BINARY_PATH, args.to_a, dir)
+    {status.exit_code, stdout, stderr}
+  end
+
+  private def self.capture(command : String, args : Array(String), dir : String) : {Process::Status, String, String}
+    stdout = IO::Memory.new
+    stderr = IO::Memory.new
+    status = Process.run(command, args, output: stdout, error: stderr, chdir: dir)
+    {status, stdout.to_s.strip, stderr.to_s.strip}
   end
 end
