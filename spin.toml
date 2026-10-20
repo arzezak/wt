@@ -1,0 +1,2 @@
+# spin manifest for wt. An application needs no [package] identity; the
+# compile root is bin/wt.rb and the library is wt.rb + wt/.

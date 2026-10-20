@@ -1,9 +1,11 @@
 module Wt
   class Completion
-    def initialize(@git : Git, @resolver : Resolver)
+    def initialize(git, resolver)
+      @git = git
+      @resolver = resolver
     end
 
-    def complete(kind : String) : Result
+    def complete(kind)
       candidates = case kind
                    when "worktrees"
                      @resolver.worktree_names
@@ -16,27 +18,28 @@ module Wt
                    when "subcommands"
                      ["cd", "new", "rm", "ls", "help"]
                    else
-                     [] of String
+                     []
                    end
       Result.print(candidates.join("\n"))
     end
 
-    def self.init_script(shell : String) : Result
+    def self.init_script(shell)
       case shell
       when "zsh"
-        Result.print(zsh_init_script)
+        Result.print(ZSH_INIT_SCRIPT)
       else
         Log.puts "unsupported shell '#{shell}' (available: zsh)"
         Result.none
       end
     end
 
-    private def git_lines(*args : String) : Array(String)
-      @git.run(*args).lines.reject(&.empty?)
+    private
+
+    def git_lines(*args)
+      @git.run(*args).split("\n").reject(&:empty?)
     end
 
-    private def self.zsh_init_script : String
-      <<-'ZSH'
+    ZSH_INIT_SCRIPT = <<~'ZSH'
       wt() {
         local output
         output=$(command wt "$@") || return
@@ -89,7 +92,6 @@ module Wt
       }
 
       compdef _wt wt
-      ZSH
-    end
+    ZSH
   end
 end

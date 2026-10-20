@@ -1,10 +1,11 @@
 module Wt
   module Commands
     class Ls
-      def initialize(@git : Git)
+      def initialize(git)
+        @git = git
       end
 
-      def run(long : Bool = false) : Result
+      def run(long: false)
         entries = @git.worktree_list
         return Result.print("no worktrees") if entries.empty?
 
@@ -12,36 +13,42 @@ module Wt
         Result.print(render_table(rows))
       end
 
-      private def header(long : Bool) : Array(String)
+      private
+
+      def header(long)
         long ? ["BRANCH", "HEAD", "PATH"] : ["BRANCH", "PATH"]
       end
 
-      private def row_for(entry : Git::WorktreeEntry, long : Bool) : Array(String)
+      def row_for(entry, long)
         columns = [branch_label(entry)]
         columns << entry.short_head if long
         columns << tilde(entry.path)
         columns
       end
 
-      private def render_table(rows : Array(Array(String))) : String
+      def render_table(rows)
         widths = column_widths(rows)
         lines = rows.map do |row|
-          row.map_with_index { |cell, i| (width = widths[i]?) ? cell.ljust(width) : cell }.join("  ")
+          cells = []
+          row.each_with_index do |cell, i|
+            cells << (i < widths.size ? cell.ljust(widths[i]) : cell)
+          end
+          cells.join("  ")
         end
         lines.join("\n")
       end
 
       # The last column has no width because it is left unpadded.
-      private def column_widths(rows : Array(Array(String))) : Array(Int32)
-        (0...rows.first.size - 1).map { |i| rows.max_of { |row| row[i].size } }
+      def column_widths(rows)
+        (0...rows.first.size - 1).map { |i| rows.map { |row| row[i].size }.max }
       end
 
-      private def tilde(path : String) : String
-        home = Path.home.to_s
-        path.starts_with?(home) ? "~#{path[home.size..]}" : path
+      def tilde(path)
+        home = Dir.home
+        path.start_with?(home) ? "~#{path[home.size..-1]}" : path
       end
 
-      private def branch_label(entry : Git::WorktreeEntry) : String
+      def branch_label(entry)
         label = entry.branch || "(detached)"
         entry.main? ? "#{label} *" : label
       end

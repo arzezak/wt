@@ -1,6 +1,6 @@
 # 🌳💻 wt
 
-A small Crystal CLI for managing git worktrees.
+A small Ruby CLI for managing git worktrees, compiled to a native binary with [Spinel](https://github.com/matz/spinel).
 
 ## Who this is for
 
@@ -8,7 +8,16 @@ wt is for people who want to create, switch between, and remove worktrees by han
 
 ## Install
 
-Requires [Crystal](https://crystal-lang.org/) (`brew install crystal`).
+Requires [Spinel](https://github.com/matz/spinel), Matz's ahead-of-time Ruby compiler, and a C compiler. Spinel is built from source (it is not a gem):
+
+```sh
+git clone https://github.com/matz/spinel.git && cd spinel
+make && sudo make install   # installs spinel and spin
+```
+
+The first dated release (`2026.09.12`) predates the bundled `yaml` and `open3` libraries wt uses, so build from the current `main`.
+
+Then, in this repo:
 
 ```sh
 make install
@@ -157,3 +166,18 @@ make test
 ```
 
 `make test` runs `crystal spec`.
+
+## Development
+
+The code is plain Ruby in Spinel's supported subset: `bin/wt.rb` is the entry point, `wt.rb` and `wt/` the library. Spinel's contract is that a program it compiles behaves the same under CRuby, so `ruby bin/wt.rb ls` runs the same code without compiling.
+
+```sh
+make build   # spin build -> build/bin/wt
+make test    # builds, then runs the minitest suite against build/bin/wt
+```
+
+The tests run under CRuby (minitest ships with Ruby). The unit tests exercise the library directly; the command tests drive the compiled binary in throwaway git repos. To run them against the Ruby source instead of the binary:
+
+```sh
+WT_BIN=bin/wt.rb make test
+```

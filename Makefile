@@ -1,17 +1,18 @@
 PREFIX ?= $(HOME)/.local
 BINDIR = $(PREFIX)/bin
+RUBY ?= ruby
 
 .PHONY: build install uninstall test clean
 
 build:
-	shards build --release
+	spin build
 
 test: build
-	crystal spec
+	$(RUBY) -e 'Dir["test/*_test.rb"].sort.each { |f| require File.expand_path(f) }'
 
 install: build
 	install -d $(BINDIR)
-	install -m 755 bin/wt $(BINDIR)/wt
+	install -m 755 build/bin/wt $(BINDIR)/wt
 	@echo ""
 	@echo "Installed to $(BINDIR)/wt"
 	@echo ""
@@ -22,4 +23,4 @@ uninstall:
 	rm -f $(BINDIR)/wt
 
 clean:
-	rm -rf bin lib .shards
+	rm -rf build
